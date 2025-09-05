@@ -2,6 +2,8 @@
 
 A bilingual dictionary application built with Django that focuses on the Dagaare language and English translations.
 
+**Live Demo:** [https://zintan.pythonanywhere.com/](https://zintan.pythonanywhere.com/)
+
 ## Overview
 
 This application serves as a digital dictionary that allows users to:
