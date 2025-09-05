@@ -10,7 +10,8 @@ from .settings import *  # Import base settings
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', SECRET_KEY)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# Temporarily enabled for troubleshooting
+DEBUG = True
 
 # Update allowed hosts for PythonAnywhere
 ALLOWED_HOSTS = ['zintan.pythonanywhere.com']
