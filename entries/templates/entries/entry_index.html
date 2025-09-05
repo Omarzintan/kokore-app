@@ -3,64 +3,112 @@
 {% extends "base.html" %}
 
 {% block search_bar %}
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js"></script>
-<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/jquery-ui.css" rel="stylesheet" type="text/css"/>
-
-<label class="form-control w-full max-w-xs">
-	<form action="{% url 'entry_index' %}" method="get">
-		<div class="label">
-			<span class="label-text">Enter your search term</span>
+<div class="search-container">
+	<div class="row justify-content-center">
+		<div class="col-md-8">
+			<h4 class="mb-4 text-center"><i class="fas fa-search me-2"></i>Search the LanguageSpace</h4>
+			<form action="{% url 'entry_index' %}" method="get" class="mb-0">
+				<div class="input-group mb-3">
+					<input id="search_query" name="q" type="text" class="form-control form-control-lg"
+						placeholder="Enter a word to search..." aria-label="Search term">
+					<select name="trd" id="trds" class="form-select form-select-lg" style="max-width: 250px;">
+						<option value="dga-en">Dagaare → English</option>
+						<option value="en-dga">English → Dagaare</option>
+					</select>
+					<button class="btn btn-primary btn-lg" type="submit">
+						<i class="fas fa-search"></i> Search
+					</button>
+				</div>
+			</form>
+			<p class="text-muted text-center small mb-0">Try typing a word to see autocomplete suggestions</p>
 		</div>
-		<input id="search_query" name="q" type="text" placeholder="Type here" class="input input-bordered w-full max-w-xs" />
-		<select name="trd" id="trds">
-			<option value="dga-en">Dagaare-English</option>
-			<option value="en-dga">English-Dagaare</option>
-		</select>
-		<input class="btn btn-outline btn-success" type="submit">
-	</form>
-</label>
+	</div>
+</div>
+
+<!-- jQuery UI for autocomplete -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
 
 <script>
-	$(function() {
+	$(function () {
 		var availableWords = [
 			{% for word in all_words %}
-			    "{{word.word}}",
-			{% endfor %}
-		];
-		$( "#search_query" ).autocomplete({
-			source: availableWords
-		});
+                "{{word.word}}",
+		{% endfor %}
+        ];
+
+	$("#search_query").autocomplete({
+		source: availableWords,
+		minLength: 2,
+		position: { my: "left top+5", at: "left bottom" },
+		classes: {
+			"ui-autocomplete": "bg-white shadow rounded py-2"
+		}
 	});
+
+	// Highlight the selected option in dropdown
+	$("#trds").on("change", function () {
+		$(this).removeClass("text-muted");
+	});
+    });
 </script>
 {% endblock search_bar %}
 
 {% block page_content %}
 <div class="row">
-	{% for word in words %}
-	<div class="col-md-4">
-		<div class="card mb-2">
-			<div class="card-body">
-				<a href="{% url 'entry_detail' word.pk %}"
-				   class="card-title">
-					{{word.word}} ({{word.language.code}})
-				</a>
-			</div>
-		</div>
+	{% if words or translations %}
+	<div class="col-12 mb-4">
+		<h5 class="text-muted">Search Results</h5>
+		<hr>
 	</div>
-	{% endfor %}
-	{% for translation in translations %}
-		<div class="col-md-4">
-			<div class="card mb-2">
+	{% endif %}
+
+	<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+		{% for word in words %}
+		<div class="col">
+			<div class="card h-100">
 				<div class="card-body">
-					<a href="{% url 'entry_detail' translation.from_word.pk %}"
-					   class="card-title">
-						{{translation.translation}} ({{translation.to_language.code}})
-					</a>
+					<h5 class="card-title">
+						<a href="{% url 'entry_detail' word.pk %}" class="text-decoration-none">
+							{{word.word}}
+						</a>
+					</h5>
+					<p class="card-text small text-muted">
+						<span class="badge bg-secondary">{{word.language.name}}</span>
+						{% if word.phonetic_spelling %}
+						<span class="ms-2">{{word.phonetic_spelling}}</span>
+						{% endif %}
+					</p>
 				</div>
 			</div>
 		</div>
-	{% endfor %}
+		{% endfor %}
+
+		{% for translation in translations %}
+		<div class="col">
+			<div class="card h-100">
+				<div class="card-body">
+					<h5 class="card-title">
+						<a href="{% url 'entry_detail' translation.from_word.pk %}" class="text-decoration-none">
+							{{translation.translation}}
+						</a>
+					</h5>
+					<p class="card-text small text-muted">
+						<span class="badge bg-secondary">{{translation.to_language.name}}</span>
+					</p>
+				</div>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+
+	{% if not words and not translations %}
+	<div class="col-12 text-center py-5">
+		<i class="fas fa-book fa-3x text-muted mb-3"></i>
+		<h4 class="text-muted">Welcome to the LanguageSpace</h4>
+		<p class="text-muted">Enter a search term above to find words and translations</p>
+	</div>
+	{% endif %}
 </div>
 {% endblock page_content %}
-

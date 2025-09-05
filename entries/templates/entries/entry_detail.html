@@ -3,59 +3,138 @@
 {% extends "base.html" %}
 
 {% block search_bar %}
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js"></script>
-<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/jquery-ui.css" rel="stylesheet" type="text/css"/>
-
-<label class="form-control w-full max-w-xs">
-	<form action="{% url 'entry_index' %}" method="get">
-		<div class="label">
-			<span class="label-text">Enter your search term</span>
+<div class="search-container">
+	<div class="row justify-content-center">
+		<div class="col-md-8">
+			<h4 class="mb-4 text-center"><i class="fas fa-search me-2"></i>Search the LanguageSpace</h4>
+			<form action="{% url 'entry_index' %}" method="get" class="mb-0">
+				<div class="input-group mb-3">
+					<input id="search_query" name="q" type="text" class="form-control form-control-lg"
+						placeholder="Enter a word to search..." aria-label="Search term">
+					<select name="trd" id="trds" class="form-select form-select-lg" style="max-width: 250px;">
+						<option value="dga-en">Dagaare → English</option>
+						<option value="en-dga">English → Dagaare</option>
+					</select>
+					<button class="btn btn-primary btn-lg" type="submit">
+						<i class="fas fa-search"></i> Search
+					</button>
+				</div>
+			</form>
+			<p class="text-muted text-center small mb-0">Try typing a word to see autocomplete suggestions</p>
 		</div>
-		<input id="search_query" name="q" type="text" placeholder="Type here" class="input input-bordered w-full max-w-xs" />
-		<select name="trd" id="trds">
-			<option value="dga-en">Dagaare-English</option>
-			<option value="en-dga">English-Dagaare</option>
-		</select>
-		<input class="btn btn-outline btn-success" type="submit">
-	</form>
-</label>
+	</div>
+</div>
+
+<!-- jQuery UI for autocomplete -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+<link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
 
 <script>
-	$(function() {
+	$(function () {
 		var availableWords = [
 			{% for word in all_words %}
-			    "{{word.word}}",
-			{% endfor %}
-		];
-		$( "#search_query" ).autocomplete({
-			source: availableWords
-		});
+                "{{word.word}}",
+		{% endfor %}
+        ];
+
+	$("#search_query").autocomplete({
+		source: availableWords,
+		minLength: 2,
+		position: { my: "left top+5", at: "left bottom" },
+		classes: {
+			"ui-autocomplete": "bg-white shadow rounded py-2"
+		}
 	});
+    });
 </script>
 {% endblock search_bar %}
 
 {% block page_content %}
-<div class="row">
-	<div class="col-md-10">
-		<h5>{{word.language.name}}</h5>
-		<p>{{word.word}} ({{word.phonetic_spelling}})</p>
-		{% for descriptor in descriptors %}
-			<p>{{descriptor.abbreviation}}</p>
-		{% endfor %}
-		<br>
-		<div class="row">
-			{% for entry in translations %}
-				<h5>{{entry.translation.to_language.name}}:</h5>
-				<p>{{entry.translation.translation}} ({{entry.translation.to_language.code}})</p>
-					{% for sentence_pair in entry.sentence_pairs %}
-						<h6>Example Sentence</h6>
-						<p>{{sentence_pair.dagaare_sentence.sentence}} ({{sentence_pair.dagaare_sentence.language.code}})</p>
-						<p>{{sentence_pair.english_sentence.sentence}} ({{sentence_pair.english_sentence.language.code}})</p>
+<div class="word-entry">
+	<div class="row">
+		<div class="col-12">
+			<!-- Word header section -->
+			<div class="d-flex align-items-center mb-4">
+				<div>
+					<span class="badge bg-primary me-2">{{word.language.name}}</span>
+					<h1 class="d-inline-block mb-0">{{word.word}}</h1>
+					{% if word.phonetic_spelling %}
+					<span class="text-muted ms-2 fs-4">/{{word.phonetic_spelling}}/</span>
+					{% endif %}
+				</div>
+				<div class="ms-auto">
+					<a href="{% url 'entry_index' %}" class="btn btn-outline-secondary btn-sm">
+						<i class="fas fa-arrow-left me-1"></i> Back to Search
+					</a>
+				</div>
+			</div>
+
+			<!-- Word details -->
+			<div class="mb-4">
+				<div class="d-flex flex-wrap mb-3">
+					{% for descriptor in descriptors %}
+					<span class="descriptor-badge me-2 mb-2" title="{{descriptor.name}}">
+						{{descriptor.abbreviation}}
+					</span>
 					{% endfor %}
-			{% endfor %}
+				</div>
+
+				{% if word.plural %}
+				<p class="mb-1"><strong>Plural:</strong> {{word.plural}}</p>
+				{% endif %}
+
+				{% if word.second_plural %}
+				<p class="mb-1"><strong>Second Plural:</strong> {{word.second_plural}}</p>
+				{% endif %}
+			</div>
+
+			<hr class="my-4">
+
+			<!-- Translations section -->
+			<div class="translations">
+				{% for entry in translations %}
+				<div class="translation-entry mb-4">
+					<h4>
+						<span class="badge bg-secondary me-2">{{entry.translation.to_language.name}}</span>
+						{{entry.translation.translation}}
+					</h4>
+
+					<!-- Example sentences -->
+					{% if entry.sentence_pairs %}
+					<div class="example-sentences mt-3">
+						<h5 class="text-muted fs-6"><i class="fas fa-quote-left me-2"></i>Example Sentences</h5>
+
+						{% for sentence_pair in entry.sentence_pairs %}
+						<div class="example-sentence p-3 mb-3 bg-light rounded">
+							<div class="row">
+								<div class="col-md-6 mb-2 mb-md-0">
+									<div class="d-flex">
+										<span
+											class="badge bg-primary me-2">{{sentence_pair.dagaare_sentence.language.name}}</span>
+										<p class="mb-0">{{sentence_pair.dagaare_sentence.sentence}}</p>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="d-flex">
+										<span
+											class="badge bg-secondary me-2">{{sentence_pair.english_sentence.language.name}}</span>
+										<p class="mb-0">{{sentence_pair.english_sentence.sentence}}</p>
+									</div>
+								</div>
+							</div>
+						</div>
+						{% endfor %}
+					</div>
+					{% endif %}
+				</div>
+
+				{% if not forloop.last %}
+				<hr class="my-4">
+				{% endif %}
+				{% endfor %}
+			</div>
 		</div>
 	</div>
 </div>
 {% endblock page_content %}
-
