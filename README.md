@@ -55,3 +55,16 @@ This application serves as a digital dictionary that allows users to:
 ## Purpose
 
 This application is designed for language learning, documentation, and preservation purposes, specifically focused on the Dagaare language (spoken in parts of Ghana and Burkina Faso).
+
+## License
+
+This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](http://creativecommons.org/licenses/by-nc/4.0/) - see the [LICENSE](LICENSE) file for details.
+
+This means you are free to:
+- Share and adapt the material for non-commercial purposes
+- Use the dictionary and language data for educational, research, and personal use
+
+With the requirement that you:
+- Give appropriate credit to the project
+- Indicate if changes were made
+- Do not use the material for commercial purposes without permission
