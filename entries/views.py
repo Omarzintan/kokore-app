@@ -2,8 +2,22 @@ from django.db.models import Q
 from django.shortcuts import render
 from entries.models import Word, Translation, Sentence, Language
 
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+
 def entry_index(request):
-    all_words = Word.objects.all()
+    # Get Dagaare words that have translations
+    dagaare_language = Language.objects.get(name="Dagaare")
+    dagaare_words = Word.objects.filter(language=dagaare_language, translation__isnull=False).distinct()
+    
+    # Get English translations for autocomplete
+    english_language = Language.objects.get(name="English")
+    english_translations = Translation.objects.filter(to_language=english_language, from_word__isnull=False).values_list('translation', flat=True).distinct()
+    
+    # Prepare data for json_script template tag
+    dagaare_words_list = [word.word for word in dagaare_words]
+    english_translations_list = list(english_translations)
+    
     query = request.GET.get("q")
     trd = request.GET.get("trd")
     words = None
@@ -12,14 +26,15 @@ def entry_index(request):
     translation_with_source = []
     
     if query and trd == "dga-en":
-        # First get exact matches
-        exact_matches = Word.objects.filter(word__iexact=query)
+        # First get exact matches with translations
+        exact_matches = Word.objects.filter(word__iexact=query, translation__isnull=False).distinct()
         
-        # Then get partial matches (excluding exact matches)
+        # Then get partial matches with translations (excluding exact matches)
         partial_matches = Word.objects.filter(
             Q(word__iregex=r'\b{0}\b'.format(query)) & 
-            ~Q(word__iexact=query)
-        )
+            ~Q(word__iexact=query) &
+            Q(translation__isnull=False)
+        ).distinct()
         
         # Combine the results with exact matches first
         words = list(exact_matches) + list(partial_matches)
@@ -35,12 +50,13 @@ def entry_index(request):
             
     elif query and trd == "en-dga":
         # First get exact matches
-        exact_matches = Translation.objects.filter(translation__iexact=query)
+        exact_matches = Translation.objects.filter(translation__iexact=query, from_word__isnull=False)
         
         # Then get partial matches (excluding exact matches)
         partial_matches = Translation.objects.filter(
             Q(translation__iregex=r'\b{0}\b'.format(query)) & 
-            ~Q(translation__iexact=query)
+            ~Q(translation__iexact=query) &
+            Q(from_word__isnull=False)
         )
         
         # Combine the results with exact matches first
@@ -55,7 +71,10 @@ def entry_index(request):
             })
    
     context = {
-            "all_words": all_words,
+            "dagaare_words": dagaare_words,
+            "english_translations": english_translations,
+            "dagaare_words_list": dagaare_words_list,
+            "english_translations_list": english_translations_list,
             "words": words,
             "translations": translations,
             "word_with_translations": word_with_translations,
@@ -64,9 +83,18 @@ def entry_index(request):
     return render(request, "entries/entry_index.html", context)
 
 def entry_detail(request, pk):
-    all_words = Word.objects.all()
+    # Get Dagaare words that have translations
     dagaare_language = Language.objects.get(name="Dagaare")
+    dagaare_words = Word.objects.filter(language=dagaare_language, translation__isnull=False).distinct()
+    
+    # Get English translations for autocomplete
     english_language = Language.objects.get(name="English")
+    english_translations = Translation.objects.filter(to_language=english_language, from_word__isnull=False).values_list('translation', flat=True).distinct()
+    
+    # Prepare data for json_script template tag
+    dagaare_words_list = [word.word for word in dagaare_words]
+    english_translations_list = list(english_translations)
+    
     word = Word.objects.get(pk=pk)
     translation_entries = []
     translations = word.translation_set.all()
@@ -84,8 +112,13 @@ def entry_detail(request, pk):
                  "sentence_pairs": sentence_pairs
                  }
         translation_entries.append(entry)
-    context = {"all_words": all_words,
+    context = {
+               "dagaare_words": dagaare_words,
+               "english_translations": english_translations,
+               "dagaare_words_list": dagaare_words_list,
+               "english_translations_list": english_translations_list,
                "word": word,
                "descriptors": word.descriptors.all(),
-               "translations": translation_entries}
+               "translations": translation_entries
+              }
     return render(request, "entries/entry_detail.html", context)

@@ -10,10 +10,10 @@
 			<form action="{% url 'entry_index' %}" method="get" class="mb-0">
 				<div class="input-group mb-3">
 					<input id="search_query" name="q" type="text" class="form-control form-control-lg"
-						placeholder="Enter a word to search..." aria-label="Search term">
+						placeholder="Enter a word to search..." aria-label="Search term" value="{{ request.GET.q|default:'' }}">
 					<select name="trd" id="trds" class="form-select form-select-lg" style="max-width: 250px;">
-						<option value="dga-en">Dagaare → English</option>
-						<option value="en-dga">English → Dagaare</option>
+						<option value="dga-en" {% if request.GET.trd == 'dga-en' or not request.GET.trd %}selected{% endif %}>Dagaare → English</option>
+						<option value="en-dga" {% if request.GET.trd == 'en-dga' %}selected{% endif %}>English → Dagaare</option>
 					</select>
 					<button class="btn btn-primary btn-lg" type="submit">
 						<i class="fas fa-search"></i> Search
@@ -30,23 +30,64 @@
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
 
+<!-- Pass data to JavaScript using json_script -->
+{{ dagaare_words_list|json_script:"dagaare-words-data" }}
+{{ english_translations_list|json_script:"english-words-data" }}
+
 <script>
 	$(function () {
-		var availableWords = [
-			{% for word in all_words %}
-                "{{word.word}}",
-		{% endfor %}
-        ];
+		// Get word lists from json_script
+		var dagaareWords = JSON.parse(document.getElementById('dagaare-words-data').textContent);
+		var englishWords = JSON.parse(document.getElementById('english-words-data').textContent);
+		
+		// Set initial available words based on selected direction
+		var currentDirection = $("#trds").val();
+		var availableWords = currentDirection === "dga-en" ? dagaareWords : englishWords;
 
-	$("#search_query").autocomplete({
-		source: availableWords,
-		minLength: 2,
-		position: { my: "left top+5", at: "left bottom" },
-		classes: {
-			"ui-autocomplete": "bg-white shadow rounded py-2"
-		}
+		$("#search_query").autocomplete({
+			source: function(request, response) {
+				// Filter items that start with the term the user typed
+				var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
+				var exactMatches = [];
+				var partialMatches = [];
+				
+				// Separate exact and partial matches
+				$.each(availableWords, function(index, item) {
+					if (item.toLowerCase() === request.term.toLowerCase()) {
+						exactMatches.push(item);
+					} else if (matcher.test(item)) {
+						partialMatches.push(item);
+					}
+				});
+				
+				// Return exact matches first, then partial matches
+				response(exactMatches.concat(partialMatches));
+			},
+			minLength: 2,
+			position: { my: "left top+5", at: "left bottom" },
+			classes: {
+				"ui-autocomplete": "bg-white shadow rounded py-2"
+			},
+			// When an item is selected, submit the form
+			select: function(event, ui) {
+				$("#search_query").val(ui.item.value);
+				$("#search_query").closest("form").submit();
+				return false;
+			}
+		});
+
+		// Update autocomplete suggestions when translation direction changes
+		$("#trds").on("change", function () {
+			$(this).removeClass("text-muted");
+			
+			// Update available words based on selected direction
+			currentDirection = $(this).val();
+			availableWords = currentDirection === "dga-en" ? dagaareWords : englishWords;
+			
+			// Clear the current search query to avoid confusion
+			$("#search_query").val("");
+		});
 	});
-    });
 </script>
 {% endblock search_bar %}
 
