@@ -144,6 +144,16 @@ This application serves as a digital dictionary that allows users to:
 
 This application is designed for language learning, documentation, and preservation purposes, specifically focused on the Dagaare language (spoken in parts of Ghana and Burkina Faso).
 
+## Data Source
+
+The dictionary data used in this application is sourced from:
+
+**Bodomo, Adams. 2018.** *A Dagaare-Cantonese-English lexicon for lexicographical field research training.* Berlin: Language Science Press. 
+
+DOI: [10.5281/zenodo.1406862](https://doi.org/10.5281/zenodo.1406862)
+
+Publication: [https://langsci-press.org/catalog/book/245](https://langsci-press.org/catalog/book/245)
+
 ## License
 
 This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](http://creativecommons.org/licenses/by-nc/4.0/) - see the [LICENSE](LICENSE) file for details.
