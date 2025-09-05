@@ -1,0 +1,20 @@
+<!-- templates/base.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}LanguageSpace{% endblock title %}</title>
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+</head>
+<div class="navbar bg-neutral text-neutral-content">
+	<a href={% url 'entry_index' %}><button class="btn btn-ghost text-xl">LanguageSpace</button></a>
+</div>
+<body class="container">
+{% block search_bar %}{% endblock search_bar %}
+{% block page_content %}{% endblock page_content %}
+</body>
+</html>

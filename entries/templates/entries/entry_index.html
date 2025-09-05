@@ -1,0 +1,66 @@
+<!-- entries/templates/entries/entry_index.html -->
+
+{% extends "base.html" %}
+
+{% block search_bar %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js"></script>
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/jquery-ui.css" rel="stylesheet" type="text/css"/>
+
+<label class="form-control w-full max-w-xs">
+	<form action="{% url 'entry_index' %}" method="get">
+		<div class="label">
+			<span class="label-text">Enter your search term</span>
+		</div>
+		<input id="search_query" name="q" type="text" placeholder="Type here" class="input input-bordered w-full max-w-xs" />
+		<select name="trd" id="trds">
+			<option value="dga-en">Dagaare-English</option>
+			<option value="en-dga">English-Dagaare</option>
+		</select>
+		<input class="btn btn-outline btn-success" type="submit">
+	</form>
+</label>
+
+<script>
+	$(function() {
+		var availableWords = [
+			{% for word in all_words %}
+			    "{{word.word}}",
+			{% endfor %}
+		];
+		$( "#search_query" ).autocomplete({
+			source: availableWords
+		});
+	});
+</script>
+{% endblock search_bar %}
+
+{% block page_content %}
+<div class="row">
+	{% for word in words %}
+	<div class="col-md-4">
+		<div class="card mb-2">
+			<div class="card-body">
+				<a href="{% url 'entry_detail' word.pk %}"
+				   class="card-title">
+					{{word.word}} ({{word.language.code}})
+				</a>
+			</div>
+		</div>
+	</div>
+	{% endfor %}
+	{% for translation in translations %}
+		<div class="col-md-4">
+			<div class="card mb-2">
+				<div class="card-body">
+					<a href="{% url 'entry_detail' translation.from_word.pk %}"
+					   class="card-title">
+						{{translation.translation}} ({{translation.to_language.code}})
+					</a>
+				</div>
+			</div>
+		</div>
+	{% endfor %}
+</div>
+{% endblock page_content %}
+

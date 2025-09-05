@@ -1,0 +1,61 @@
+<!-- entries/templates/entries/entry_detail.html -->
+
+{% extends "base.html" %}
+
+{% block search_bar %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js"></script>
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/jquery-ui.css" rel="stylesheet" type="text/css"/>
+
+<label class="form-control w-full max-w-xs">
+	<form action="{% url 'entry_index' %}" method="get">
+		<div class="label">
+			<span class="label-text">Enter your search term</span>
+		</div>
+		<input id="search_query" name="q" type="text" placeholder="Type here" class="input input-bordered w-full max-w-xs" />
+		<select name="trd" id="trds">
+			<option value="dga-en">Dagaare-English</option>
+			<option value="en-dga">English-Dagaare</option>
+		</select>
+		<input class="btn btn-outline btn-success" type="submit">
+	</form>
+</label>
+
+<script>
+	$(function() {
+		var availableWords = [
+			{% for word in all_words %}
+			    "{{word.word}}",
+			{% endfor %}
+		];
+		$( "#search_query" ).autocomplete({
+			source: availableWords
+		});
+	});
+</script>
+{% endblock search_bar %}
+
+{% block page_content %}
+<div class="row">
+	<div class="col-md-10">
+		<h5>{{word.language.name}}</h5>
+		<p>{{word.word}} ({{word.phonetic_spelling}})</p>
+		{% for descriptor in descriptors %}
+			<p>{{descriptor.abbreviation}}</p>
+		{% endfor %}
+		<br>
+		<div class="row">
+			{% for entry in translations %}
+				<h5>{{entry.translation.to_language.name}}:</h5>
+				<p>{{entry.translation.translation}} ({{entry.translation.to_language.code}})</p>
+					{% for sentence_pair in entry.sentence_pairs %}
+						<h6>Example Sentence</h6>
+						<p>{{sentence_pair.dagaare_sentence.sentence}} ({{sentence_pair.dagaare_sentence.language.code}})</p>
+						<p>{{sentence_pair.english_sentence.sentence}} ({{sentence_pair.english_sentence.language.code}})</p>
+					{% endfor %}
+			{% endfor %}
+		</div>
+	</div>
+</div>
+{% endblock page_content %}
+

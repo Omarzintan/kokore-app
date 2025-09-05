@@ -1,0 +1,8 @@
+DAGARE_WORD_REGEX = "tbLX\{(.*?)\}"
+ENGLISH_MEANING_REGEX = "tbGE\{(.*?)\}"
+PHONETIC_SPELLING_REGEX = "tbPH\{(.*?)\}"
+DESCRIPTORS = "tbPS\{(.*?)\}"
+DAGARE_SENTENCE_REGEX = "tbXV\{(.*?)\}"
+ENGLISH_SENTENCE_REGEX = "tbXE\{(.*?)\}"
+WORD_PLURAL_REGEX = "tbOP\{(.*?)\}"
+WORD_PLURAL_2_REGEX = "tbTP\{(.*?)\}"
