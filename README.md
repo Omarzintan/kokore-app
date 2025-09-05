@@ -114,13 +114,29 @@ This application serves as a digital dictionary that allows users to:
 8. Run migrations and collect static files:
    ```
    cd ~/kokore-app
-   python manage.py migrate
-   python manage.py collectstatic
+   python manage.py migrate --settings=dictionary.settings_production
+   python manage.py collectstatic --settings=dictionary.settings_production
    ```
 
-9. Reload your web app from the PythonAnywhere dashboard
+9. Populate the database with dictionary data:
+   
+   ```bash
+   cd ~/kokore-app
+   workon kokore-env
+   
+   # First populate prerequisite tables
+   python manage.py populate_language_table --settings=dictionary.settings_production
+   python manage.py populate_descriptor_table --settings=dictionary.settings_production
+   
+   # Then populate the main dictionary data
+   python manage.py populate_db --settings=dictionary.settings_production
+   ```
+   
+   This will read the dictionary data from the .tex files in the `dictionary/data/chapters/` directory and populate your database with words, translations, and example sentences. **Note:** The database population process may take several minutes to complete, especially for the main dictionary data.
 
-10. Your site should now be live at `yourusername.pythonanywhere.com`
+10. Reload your web app from the PythonAnywhere dashboard
+
+11. Your site should now be live at `yourusername.pythonanywhere.com`
 
 ## Purpose
 
