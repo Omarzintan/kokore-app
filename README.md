@@ -37,6 +37,8 @@ This application serves as a digital dictionary that allows users to:
 
 ## Getting Started
 
+### Local Development
+
 1. Clone this repository
 2. Install dependencies:
    ```
@@ -51,6 +53,74 @@ This application serves as a digital dictionary that allows users to:
    python manage.py runserver
    ```
 5. Access the application at http://localhost:8000
+
+### Deployment to PythonAnywhere
+
+1. Sign up for a [PythonAnywhere account](https://www.pythonanywhere.com/)
+
+2. Upload your code to PythonAnywhere:
+   ```
+   # From your PythonAnywhere bash console
+   git clone https://github.com/yourusername/kokore-app.git
+   ```
+
+3. Set up a virtual environment:
+   ```
+   mkvirtualenv --python=/usr/bin/python3.9 kokore-env
+   pip install -r kokore-app/requirements.txt
+   ```
+
+4. Create a MySQL database from the PythonAnywhere dashboard
+
+5. Configure environment variables:
+   ```
+   # In PythonAnywhere bash console
+   echo 'export DJANGO_SECRET_KEY="your-secure-secret-key"' >> ~/.virtualenvs/kokore-env/bin/postactivate
+   echo 'export DJANGO_DEBUG="False"' >> ~/.virtualenvs/kokore-env/bin/postactivate
+   echo 'export DATABASE_PASSWORD="your-database-password"' >> ~/.virtualenvs/kokore-env/bin/postactivate
+   ```
+
+6. Configure your web app:
+   - Go to the Web tab in PythonAnywhere
+   - Add a new web app, select Manual Configuration, then Python 3.9
+   - Set the virtual environment path to `/home/yourusername/.virtualenvs/kokore-env`
+   - Edit the WSGI configuration file to use the production settings:
+     ```python
+     import os
+     import sys
+     
+     # Add your project directory to the sys.path
+     path = '/home/yourusername/kokore-app'
+     if path not in sys.path:
+         sys.path.insert(0, path)
+     
+     # Set environment variable to use production settings
+     os.environ['DJANGO_SETTINGS_MODULE'] = 'dictionary.settings_production'
+     
+     # Import Django WSGI application
+     from django.core.wsgi import get_wsgi_application
+     application = get_wsgi_application()
+     ```
+
+7. Set up static files:
+   - First, create the staticfiles directory:
+     ```
+     mkdir -p ~/kokore-app/staticfiles
+     ```
+   - In the web app configuration, add a static files mapping:
+     - URL: `/static/`
+     - Directory: `/home/yourusername/kokore-app/staticfiles`
+
+8. Run migrations and collect static files:
+   ```
+   cd ~/kokore-app
+   python manage.py migrate
+   python manage.py collectstatic
+   ```
+
+9. Reload your web app from the PythonAnywhere dashboard
+
+10. Your site should now be live at `yourusername.pythonanywhere.com`
 
 ## Purpose
 
