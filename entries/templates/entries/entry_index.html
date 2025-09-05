@@ -10,10 +10,10 @@
 			<form action="{% url 'entry_index' %}" method="get" class="mb-0">
 				<div class="input-group mb-3">
 					<input id="search_query" name="q" type="text" class="form-control form-control-lg"
-						placeholder="Enter a word to search..." aria-label="Search term">
+						placeholder="Enter a word to search..." aria-label="Search term" value="{{ request.GET.q|default:'' }}">
 					<select name="trd" id="trds" class="form-select form-select-lg" style="max-width: 250px;">
-						<option value="dga-en">Dagaare → English</option>
-						<option value="en-dga">English → Dagaare</option>
+						<option value="dga-en" {% if request.GET.trd == 'dga-en' or not request.GET.trd %}selected{% endif %}>Dagaare → English</option>
+						<option value="en-dga" {% if request.GET.trd == 'en-dga' %}selected{% endif %}>English → Dagaare</option>
 					</select>
 					<button class="btn btn-primary btn-lg" type="submit">
 						<i class="fas fa-search"></i> Search
@@ -39,11 +39,23 @@
         ];
 
 	$("#search_query").autocomplete({
-		source: availableWords,
+		source: function(request, response) {
+			// Filter items that start with the term the user typed
+			var matcher = new RegExp("^" + $.ui.autocomplete.escapeRegex(request.term), "i");
+			response($.grep(availableWords, function(item) {
+				return matcher.test(item);
+			}));
+		},
 		minLength: 2,
 		position: { my: "left top+5", at: "left bottom" },
 		classes: {
 			"ui-autocomplete": "bg-white shadow rounded py-2"
+		},
+		// When an item is selected, submit the form
+		select: function(event, ui) {
+			$("#search_query").val(ui.item.value);
+			$("#search_query").closest("form").submit();
+			return false;
 		}
 	});
 
@@ -65,42 +77,109 @@
 	{% endif %}
 
 	<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-		{% for word in words %}
+		{% for item in word_with_translations %}
 		<div class="col">
-			<div class="card h-100">
+			<div class="card h-100 {% if item.is_exact_match %}border-primary{% endif %}">
 				<div class="card-body">
 					<h5 class="card-title">
-						<a href="{% url 'entry_detail' word.pk %}" class="text-decoration-none">
-							{{word.word}}
+						<a href="{% url 'entry_detail' item.word.pk %}" class="text-decoration-none">
+							{{item.word.word}}
 						</a>
 					</h5>
 					<p class="card-text small text-muted">
-						<span class="badge bg-secondary">{{word.language.name}}</span>
-						{% if word.phonetic_spelling %}
-						<span class="ms-2">{{word.phonetic_spelling}}</span>
+						<span class="badge bg-secondary">{{item.word.language.name}}</span>
+						{% if item.is_exact_match %}
+						<span class="badge bg-primary ms-2">Exact Match</span>
+						{% endif %}
+						{% if item.word.phonetic_spelling %}
+						<span class="ms-2">{{item.word.phonetic_spelling}}</span>
 						{% endif %}
 					</p>
+					
+					{% if item.translations %}
+					<hr class="my-2">
+					<div class="translations">
+						<p class="mb-1 fw-medium">Translations:</p>
+						<ul class="list-unstyled ps-2 mb-0">
+							{% for trans in item.translations %}
+							<li class="mb-1">• {{trans.translation}}</li>
+							{% endfor %}
+						</ul>
+						<a href="{% url 'entry_detail' item.word.pk %}" class="btn btn-sm btn-outline-secondary mt-2">More details</a>
+					</div>
+					{% endif %}
 				</div>
 			</div>
 		</div>
 		{% endfor %}
 
-		{% for translation in translations %}
+		{% if not word_with_translations %}
+			{% for word in words %}
+			<div class="col">
+				<div class="card h-100">
+					<div class="card-body">
+						<h5 class="card-title">
+							<a href="{% url 'entry_detail' word.pk %}" class="text-decoration-none">
+								{{word.word}}
+							</a>
+						</h5>
+						<p class="card-text small text-muted">
+							<span class="badge bg-secondary">{{word.language.name}}</span>
+							{% if word.phonetic_spelling %}
+							<span class="ms-2">{{word.phonetic_spelling}}</span>
+							{% endif %}
+						</p>
+					</div>
+				</div>
+			</div>
+			{% endfor %}
+		{% endif %}
+
+		{% for item in translation_with_source %}
 		<div class="col">
-			<div class="card h-100">
+			<div class="card h-100 {% if item.is_exact_match %}border-primary{% endif %}">
 				<div class="card-body">
 					<h5 class="card-title">
-						<a href="{% url 'entry_detail' translation.from_word.pk %}" class="text-decoration-none">
-							{{translation.translation}}
+						<a href="{% url 'entry_detail' item.source_word.pk %}" class="text-decoration-none">
+							{{item.translation.translation}}
 						</a>
 					</h5>
 					<p class="card-text small text-muted">
-						<span class="badge bg-secondary">{{translation.to_language.name}}</span>
+						<span class="badge bg-secondary">{{item.translation.to_language.name}}</span>
+						{% if item.is_exact_match %}
+						<span class="badge bg-primary ms-2">Exact Match</span>
+						{% endif %}
 					</p>
+					
+					<hr class="my-2">
+					<div class="translations">
+						<p class="mb-1 fw-medium">Dagaare word:</p>
+						<p class="ps-2 mb-0">• {{item.source_word.word}}</p>
+						<a href="{% url 'entry_detail' item.source_word.pk %}" class="btn btn-sm btn-outline-secondary mt-2">More details</a>
+					</div>
 				</div>
 			</div>
 		</div>
 		{% endfor %}
+
+		{% if not translation_with_source %}
+			{% for translation in translations %}
+			<div class="col">
+				<div class="card h-100">
+					<div class="card-body">
+						<h5 class="card-title">
+							<a href="{% url 'entry_detail' translation.from_word.pk %}" class="text-decoration-none">
+								{{translation.translation}}
+							</a>
+						</h5>
+						<p class="card-text small text-muted">
+							<span class="badge bg-secondary">{{translation.to_language.name}}</span>
+						</p>
+					</div>
+				</div>
+			</div>
+			{% endfor %}
+		{% endif %}
 	</div>
 
 	{% if not words and not translations %}

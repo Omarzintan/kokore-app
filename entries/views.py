@@ -8,19 +8,58 @@ def entry_index(request):
     trd = request.GET.get("trd")
     words = None
     translations = None
+    word_with_translations = []
+    translation_with_source = []
+    
     if query and trd == "dga-en":
-        words = Word.objects.filter(
-                Q(word__iexact=query) |
-                Q(word__iregex=r'\b{0}\b'.format(query)))
+        # First get exact matches
+        exact_matches = Word.objects.filter(word__iexact=query)
+        
+        # Then get partial matches (excluding exact matches)
+        partial_matches = Word.objects.filter(
+            Q(word__iregex=r'\b{0}\b'.format(query)) & 
+            ~Q(word__iexact=query)
+        )
+        
+        # Combine the results with exact matches first
+        words = list(exact_matches) + list(partial_matches)
+        
+        # Get translations for each word
+        for word in words:
+            word_translations = word.translation_set.all()[:3]  # Limit to 3 translations for brevity
+            word_with_translations.append({
+                'word': word,
+                'translations': word_translations,
+                'is_exact_match': word.word.lower() == query.lower()  # Flag for highlighting in template
+            })
+            
     elif query and trd == "en-dga":
-        # for postgres, use \y for the regex
-        translations = Translation.objects.filter(Q(translation__iexact=query) |
-                Q(translation__iregex=r'\b{0}\b'.format(query)))
+        # First get exact matches
+        exact_matches = Translation.objects.filter(translation__iexact=query)
+        
+        # Then get partial matches (excluding exact matches)
+        partial_matches = Translation.objects.filter(
+            Q(translation__iregex=r'\b{0}\b'.format(query)) & 
+            ~Q(translation__iexact=query)
+        )
+        
+        # Combine the results with exact matches first
+        translations = list(exact_matches) + list(partial_matches)
+        
+        # Get source word for each translation
+        for translation in translations:
+            translation_with_source.append({
+                'translation': translation,
+                'source_word': translation.from_word,
+                'is_exact_match': translation.translation.lower() == query.lower()  # Flag for highlighting in template
+            })
    
     context = {
             "all_words": all_words,
             "words": words,
-            "translations": translations
+            "translations": translations,
+            "word_with_translations": word_with_translations,
+            "translation_with_source": translation_with_source
             }
     return render(request, "entries/entry_index.html", context)
 
