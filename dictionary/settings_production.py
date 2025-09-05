@@ -13,17 +13,17 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', SECRET_KEY)
 DEBUG = False
 
 # Update allowed hosts for PythonAnywhere
-ALLOWED_HOSTS = ['yourusername.pythonanywhere.com']  # Replace with your actual PythonAnywhere username
+ALLOWED_HOSTS = ['zintan.pythonanywhere.com']
 
 # Database
 # Use MySQL database on PythonAnywhere
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'yourusername$kokore',  # Replace with your database name
-        'USER': 'yourusername',  # Replace with your PythonAnywhere username
+        'NAME': 'zintan$kokore',  # Database name
+        'USER': 'zintan',  # PythonAnywhere username
         'PASSWORD': os.environ.get('DATABASE_PASSWORD', ''),  # Set this in PythonAnywhere bash console
-        'HOST': 'yourusername.mysql.pythonanywhere-services.com',  # Replace with your MySQL host
+        'HOST': 'zintan.mysql.pythonanywhere-services.com',  # MySQL host
         'PORT': '',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
