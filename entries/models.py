@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 class Language(models.Model):
     code = models.CharField(max_length=10)
@@ -47,3 +48,16 @@ class Sentence(models.Model):
     def __str__(self):
         return self.sentence
 
+
+class DailyWord(models.Model):
+    word = models.ForeignKey(Word, on_delete=models.CASCADE)
+    featured_date = models.DateField(default=timezone.now)
+    notes = models.TextField(blank=True)
+    
+    class Meta:
+        ordering = ['-featured_date']
+        verbose_name = 'Daily Word'
+        verbose_name_plural = 'Daily Words'
+    
+    def __str__(self):
+        return f"{self.word.word} - {self.featured_date}"

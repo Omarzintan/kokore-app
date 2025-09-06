@@ -207,11 +207,54 @@
 	</div>
 
 	{% if not words and not translations %}
-	<div class="col-12 text-center py-5">
+	<div class="col-12 text-center py-4">
 		<i class="fas fa-book fa-3x text-muted mb-3"></i>
 		<h4 class="text-muted">Welcome to the LanguageSpace</h4>
 		<p class="text-muted">Enter a search term above to find words and translations</p>
 	</div>
+	
+	{% if daily_word %}
+	<div class="col-12 mt-2">
+		<div class="card shadow-sm">
+			<div class="card-header bg-primary text-white">
+				<h4 class="mb-0">
+					<i class="fas fa-calendar-day me-2"></i>Daily Dagaare Word
+					<a href="{% url 'daily_word' %}" class="btn btn-sm btn-outline-light float-end">View Full Details</a>
+				</h4>
+			</div>
+			<div class="card-body">
+				<div class="row">
+					<div class="col-md-6">
+						<h2 class="display-5 mb-0 fw-bold text-primary">{{ daily_word.word.word }}</h2>
+						{% if daily_word.word.phonetic_spelling %}
+						<p class="text-muted mb-2">[{{ daily_word.word.phonetic_spelling }}]</p>
+						{% endif %}
+						
+						<div class="mb-3">
+							{% for descriptor in daily_word.word.descriptors.all %}
+							<span class="descriptor-badge">{{ descriptor.abbreviation }}</span>
+							{% endfor %}
+						</div>
+					</div>
+					<div class="col-md-6">
+						<h5 class="mb-3">Translations:</h5>
+						<ul class="list-unstyled">
+							{% for translation in daily_word.word.translation_set.all|slice:":3" %}
+							<li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>{{ translation.translation }}</li>
+							{% endfor %}
+						</ul>
+						<a href="{% url 'daily_word' %}" class="btn btn-outline-primary mt-2">
+							<i class="fas fa-info-circle me-1"></i>Learn More
+						</a>
+					</div>
+				</div>
+			</div>
+			<div class="card-footer text-muted text-center">
+				Featured on {{ daily_word.featured_date|date:"F j, Y" }}
+			</div>
+		</div>
+	</div>
+	{% endif %}
 	{% endif %}
 </div>
 {% endblock page_content %}

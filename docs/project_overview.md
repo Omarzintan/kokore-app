@@ -1,0 +1,68 @@
+# Kokore Dictionary App - Project Overview
+
+## Project Summary
+The Kokore Dictionary App is a Django-based web application designed for language preservation and learning. It serves as a digital bilingual dictionary focused on the Dagaare language (spoken in Ghana and Burkina Faso) and English translations. The application aims to document, preserve, and promote the Dagaare language, which faces challenges in the digital age despite being spoken by 1-2 million people.
+
+## Data Source
+The dictionary data is sourced from an academic publication:
+- **Author**: Adams Bodomo
+- **Year**: 2018
+- **Title**: A Dagaare-Cantonese-English lexicon for lexicographical field research training
+- **Publisher**: Language Science Press
+- **URL**: https://langsci-press.org/catalog/book/245
+- **DOI**: 10.5281/zenodo.1406862
+
+## Technical Architecture
+
+### Framework and Technologies
+- **Backend**: Django web framework
+- **Database**: SQLite (development), MySQL (production on PythonAnywhere)
+- **Frontend**: Bootstrap 5, jQuery UI (for autocomplete)
+- **Deployment**: PythonAnywhere hosting
+
+### Data Models
+1. **Word**: Stores words with language, phonetic spelling, and grammatical information
+2. **Translation**: Links words between languages
+3. **Sentence**: Stores example sentences with translations
+4. **Language**: Defines languages in the system (primarily Dagaare and English)
+5. **Descriptor**: Stores grammatical descriptors (like parts of speech)
+
+### Key Features
+- **Bidirectional Search**: Users can search in both Dagaare-to-English and English-to-Dagaare directions
+- **Autocomplete**: Search suggestions appear as users type
+- **Detailed Word Entries**: Each entry includes phonetic spelling, grammatical information, translations, and example sentences
+- **Audio Support**: Infrastructure for pronunciation examples
+
+### Project Structure
+- **dictionary/**: Core Django project settings
+  - **data/chapters/**: Contains .tex files with the raw dictionary data
+- **entries/**: Main app for dictionary functionality
+  - **models.py**: Database models for words, translations, etc.
+  - **views.py**: View functions for search and display
+  - **helpers/**: Custom tokenizer and processing tools
+  - **management/commands/**: Scripts for populating the database
+- **pages/**: App for static pages (about, etc.)
+- **templates/**: HTML templates including base layout
+
+## Data Processing
+The application processes raw dictionary data from .tex files using a custom tokenizer. The data population workflow:
+1. `populate_language_table`: Sets up language entries
+2. `populate_descriptor_table`: Sets up grammatical descriptors
+3. `populate_db`: Main script that reads .tex files and populates the database with words, translations, and example sentences
+
+## Deployment
+The application is deployed on PythonAnywhere:
+- **Live URL**: https://zintan.pythonanywhere.com/
+- **Production Settings**: Uses dictionary.settings_production
+- **Database**: MySQL on PythonAnywhere
+- **Static Files**: Collected to staticfiles directory
+
+## Purpose and Impact
+The Kokore Dictionary App serves multiple purposes:
+- **Language Documentation**: Preserving vocabulary, grammar, and usage examples
+- **Educational Resource**: Supporting language learning and teaching
+- **Cultural Preservation**: Maintaining linguistic diversity and cultural heritage
+- **Research Tool**: Providing data for linguistic research
+
+## License
+The project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License, allowing for non-commercial use with attribution.

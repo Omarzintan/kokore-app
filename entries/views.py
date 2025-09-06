@@ -1,11 +1,15 @@
 from django.db.models import Q
 from django.shortcuts import render
-from entries.models import Word, Translation, Sentence, Language
+from django.utils import timezone
+from entries.models import Word, Translation, Sentence, Language, DailyWord
 
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 
 def entry_index(request):
+    # Get daily word
+    daily_word_obj = get_daily_word()
+    
     # Get Dagaare words that have translations
     dagaare_language = Language.objects.get(name="Dagaare")
     dagaare_words = Word.objects.filter(language=dagaare_language, translation__isnull=False).distinct()
@@ -78,9 +82,77 @@ def entry_index(request):
             "words": words,
             "translations": translations,
             "word_with_translations": word_with_translations,
-            "translation_with_source": translation_with_source
+            "translation_with_source": translation_with_source,
+            "daily_word": daily_word_obj
             }
     return render(request, "entries/entry_index.html", context)
+
+def get_daily_word():
+    """Helper function to get the daily word"""
+    today = timezone.now().date()
+    
+    # Try to get today's word
+    daily_word = DailyWord.objects.filter(featured_date=today).first()
+    
+    # If no word for today, get the most recent one
+    if not daily_word:
+        daily_word = DailyWord.objects.order_by('-featured_date').first()
+    
+    # If still no word, return None
+    if not daily_word:
+        return None
+        
+    return daily_word
+
+
+def daily_word(request):
+    """View to display the daily word"""
+    daily_word_obj = get_daily_word()
+    
+    if not daily_word_obj:
+        # No daily word found
+        context = {
+            "no_daily_word": True
+        }
+        return render(request, "entries/daily_word.html", context)
+    
+    # Get the word and its details
+    word = daily_word_obj.word
+    dagaare_language = Language.objects.get(name="Dagaare")
+    english_language = Language.objects.get(name="English")
+    
+    # Get translations
+    translations = word.translation_set.all()
+    
+    # Get example sentences
+    translation_entries = []
+    for translation in translations:
+        sentence_pairs = []
+        if translation.sentence_set.exists():
+            dagaare_sentences = translation.sentence_set.filter(language=dagaare_language.id)
+            for sentence in dagaare_sentences:
+                sentence_pair = {
+                    "dagaare_sentence": sentence,
+                    "english_sentence": sentence.translated_sentence.filter(language=english_language.id).first()
+                }
+                sentence_pairs.append(sentence_pair)
+        
+        entry = {
+            "translation": translation,
+            "sentence_pairs": sentence_pairs
+        }
+        translation_entries.append(entry)
+    
+    context = {
+        "daily_word": daily_word_obj,
+        "word": word,
+        "descriptors": word.descriptors.all(),
+        "translations": translation_entries,
+        "featured_date": daily_word_obj.featured_date
+    }
+    
+    return render(request, "entries/daily_word.html", context)
+
 
 def entry_detail(request, pk):
     # Get Dagaare words that have translations

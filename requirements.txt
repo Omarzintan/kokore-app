@@ -3,3 +3,4 @@ Pillow==10.0.0  # For image/file handling
 mysqlclient==2.2.0  # For MySQL database support
 python-dotenv==1.0.0  # For environment variable management
 gunicorn==21.2.0  # Production WSGI server
+django-crontab==0.7.1  # For scheduling tasks
